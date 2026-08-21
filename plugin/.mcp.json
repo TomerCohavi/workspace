@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "designalign": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp-server/dist/server.js"]
+    }
+  }
+}

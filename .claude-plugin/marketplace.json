@@ -1,0 +1,14 @@
+{
+  "name": "designalign",
+  "owner": {
+    "name": "DesignAlign"
+  },
+  "plugins": [
+    {
+      "name": "designalign",
+      "source": "./plugin",
+      "description": "On-brand HTML presentations and static sites with MCP validate/fix for Claude Code.",
+      "version": "0.1.0"
+    }
+  ]
+}

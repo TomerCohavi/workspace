@@ -1,0 +1,11 @@
+{
+  "name": "aurora",
+  "label": "Aurora",
+  "colors": {
+    "primary": "#5E6AD2",
+    "secondary": "#1A1A2E",
+    "background": "#FFFFFF",
+    "text": "#0D0D0D",
+    "accent": "#00C2A8"
+  }
+}

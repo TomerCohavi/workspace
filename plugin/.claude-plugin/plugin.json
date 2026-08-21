@@ -1,0 +1,9 @@
+{
+  "name": "designalign",
+  "version": "0.1.0",
+  "description": "Generate on-brand HTML presentations and static sites with a validate/fix loop for Claude Code.",
+  "author": {
+    "name": "DesignAlign"
+  },
+  "keywords": ["design-system", "presentation", "static-site", "brand"]
+}
