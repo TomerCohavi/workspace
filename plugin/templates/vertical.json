@@ -1,0 +1,67 @@
+{
+  "$template": "vertical",
+  "$description": "Single-page vertical document. One continuous surface, consistent width.",
+
+  "canvas": {
+    "width": "100%",
+    "maxWidth": "53.75rem",
+    "centering": "auto-margin",
+    "padding": {
+      "sides": "3rem",
+      "top": "2.5rem",
+      "bottom": "3rem",
+      "mobile": "1.5rem"
+    }
+  },
+
+  "card": {
+    "corners": "radii.medium",
+    "border": "1px solid border",
+    "topAccent": "3px solid roles.action",
+    "overflow": "hidden"
+  },
+
+  "surround": {
+    "background": "palette.lightestNeutral",
+    "padding": "2rem",
+    "rule": "The document floats as a card on a lighter neutral surround. Surround color must come from the token palette."
+  },
+
+  "background": {
+    "header": "roles.surfaceDark",
+    "content": "roles.surface",
+    "closing": "roles.surfaceDark",
+    "rule": "Dark-light-dark sandwich. Header opens with the brand's dark surface for impact. Content sections use light surface for readability. Closing returns to dark to bookend."
+  },
+
+  "header": {
+    "position": "top",
+    "elements": ["logo", "meta", "eyebrow", "title", "subtitle"],
+    "separatorBelow": "whitespace"
+  },
+
+  "footer": {
+    "position": "bottom",
+    "elements": ["attribution", "logo"],
+    "separatorAbove": "thin-line",
+    "insideClosing": true
+  },
+
+  "sections": {
+    "gap": "rhythm.sectionGap",
+    "internalGap": "rhythm.elementGap",
+    "break": {
+      "whitespace": "sectionGap / 2 above and below the line",
+      "line": "elements.divider, centered in the gap",
+      "rule": "Equal whitespace above and below the divider line. The line sits in the middle. That's it."
+    }
+  },
+
+  "width": {
+    "rule": "Every element shares the same content width and side padding. No exceptions. Header content, body content, footer content — all aligned."
+  },
+
+  "responsive": {
+    "rule": "Same layout on mobile. Only padding reduces. No reflow."
+  }
+}

@@ -48,7 +48,7 @@ server.tool(
         "Path to the main HTML file relative to the project root, e.g. out/presentation/index.html",
       ),
     kind: z
-      .enum(["presentation", "static-site"])
+      .enum(["presentation", "static-site", "document"])
       .describe("Which artifact rules to apply"),
   },
   async ({ path, kind }) => {
