@@ -183,6 +183,51 @@
       }
     },
 
+    "editorial": {
+      "type": "object",
+      "description": "Layer 7: Design constraints for harmony",
+      "properties": {
+        "sizeSelections": { "type": "array", "items": { "type": "number" }, "description": "Which 3-4 font sizes from palette to use in one document (rem)" },
+        "weightSelections": { "type": "array", "items": { "type": "integer" }, "description": "Which 2 font weights to use" },
+        "spacingSelections": { "type": "array", "items": { "type": "number" }, "description": "Which 2-3 spacing values to use (rem)" },
+        "maxColors": { "type": "integer", "description": "Max distinct colors per document" },
+        "accentRule": { "type": "string", "description": "How accent color is used" },
+        "surfaceAlternation": { "type": "string", "enum": ["alternate", "uniform", "hero-only"] },
+        "headingStyle": {
+          "type": "object",
+          "properties": {
+            "case": { "type": "string", "enum": ["sentence", "title", "uppercase"] },
+            "type": { "type": "string", "enum": ["topic", "insight"] }
+          }
+        },
+        "tone": { "type": "string", "enum": ["formal", "conversational", "playful", "technical"] }
+      }
+    },
+
+    "assets": {
+      "type": "object",
+      "description": "Layer 8: Brand asset references and treatment rules",
+      "properties": {
+        "logo": {
+          "type": "object",
+          "properties": {
+            "file": { "type": "string", "description": "Path to logo file relative to token directory" },
+            "fileDark": { "type": "string", "description": "Path to logo variant for dark backgrounds" },
+            "placement": { "type": "string", "enum": ["top-left", "top-center", "top-right"] },
+            "clearSpace": { "type": "number", "description": "Minimum padding as multiplier of logo height" }
+          }
+        },
+        "photoTreatment": { "type": "string", "enum": ["full-color", "grayscale", "brand-overlay", "none"] },
+        "iconStyle": {
+          "type": "object",
+          "properties": {
+            "style": { "type": "string", "enum": ["outline", "filled", "duotone"] },
+            "strokeWidth": { "type": "number", "description": "In rem" }
+          }
+        }
+      }
+    },
+
     "rhythm": {
       "type": "object",
       "description": "Layer 6: Pacing and density",

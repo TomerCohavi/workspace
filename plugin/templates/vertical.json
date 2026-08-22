@@ -48,12 +48,11 @@
   },
 
   "sections": {
-    "gap": "rhythm.sectionGap",
     "internalGap": "rhythm.elementGap",
     "break": {
-      "whitespace": "sectionGap / 2 above and below the line",
-      "line": "elements.divider, centered in the gap",
-      "rule": "Equal whitespace above and below the divider line. The line sits in the middle. That's it."
+      "method": "surround-gap",
+      "gap": "0.5rem",
+      "rule": "Sections are separate cards. A sliver of the surround background shows between them — no lines, no borders. The surround peeks through as the separator. Each section has its own background and padding."
     }
   },
 

@@ -119,6 +119,34 @@ export const TokensSchema = z.object({
     }).optional(),
   }).optional(),
 
+  editorial: z.object({
+    sizeSelections: z.array(z.number()).optional(),
+    weightSelections: z.array(z.number().int()).optional(),
+    spacingSelections: z.array(z.number()).optional(),
+    maxColors: z.number().int().optional(),
+    accentRule: z.string().optional(),
+    surfaceAlternation: z.enum(["alternate", "uniform", "hero-only"]).optional(),
+    headingStyle: z.object({
+      case: z.enum(["sentence", "title", "uppercase"]).optional(),
+      type: z.enum(["topic", "insight"]).optional(),
+    }).optional(),
+    tone: z.enum(["formal", "conversational", "playful", "technical"]).optional(),
+  }).optional(),
+
+  assets: z.object({
+    logo: z.object({
+      file: z.string().optional(),
+      fileDark: z.string().optional(),
+      placement: z.enum(["top-left", "top-center", "top-right"]).optional(),
+      clearSpace: z.number().optional(),
+    }).optional(),
+    photoTreatment: z.enum(["full-color", "grayscale", "brand-overlay", "none"]).optional(),
+    iconStyle: z.object({
+      style: z.enum(["outline", "filled", "duotone"]).optional(),
+      strokeWidth: z.number().optional(),
+    }).optional(),
+  }).optional(),
+
   rhythm: z.object({
     density: z.enum(["sparse", "balanced", "dense"]).optional(),
     sectionGap: z.number().optional(),
