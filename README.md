@@ -1,113 +1,105 @@
 # DesignAlign
 
-Claude Code plugin that keeps generated **HTML presentations** and **static sites** on-brand.
+A design system harness for AI-generated documents. Scrape a brand's visual identity once, enforce it on every generation.
 
-1. Set a palette (preset or custom colors)  
-2. Generate a deck or one-pager  
-3. Local MCP **`validate_artifact`** returns violations  
-4. Claude Code fixes until validation passes  
+Point DesignAlign at any website — it extracts colors, fonts, spacing, hierarchy, and layout into a compact token file. Then when you generate presentations or documents, every visual decision matches the brand. No more generic output.
 
-No database. No hosted API key. Uses the user’s Claude Code account for generation; MCP validation runs locally.
+## How it works
+
+1. **Tokenize** — `/designalign:tokenize` scrapes a brand into a structured token file across 8 layers
+2. **Generate** — create presentations or vertical documents using the token file
+3. **Validate** — MCP server checks every color, font, size, weight, and radius against the allowed set
+4. **Fix** — Claude Code auto-fixes violations until the output is clean
+
+## The 8-layer token hierarchy
+
+| Layer | Question it answers | Source |
+|-------|-------------------|--------|
+| 1. Palette | What values exist? | W3C |
+| 2. Roles | What does each value mean? | W3C |
+| 3. Elements | How does each piece look? | Extension |
+| 4. Hierarchy | What's important? | Extension |
+| 5. Structure | What's the layout? | Extension |
+| 6. Rhythm | What's the pacing? | Extension |
+| 7. Editorial Mechanics | What are the constraints? | Extension |
+| 8. Asset Semantics | How are brand assets used? | Extension |
+
+Layers 1-2 align with the W3C Design Tokens standard. Layers 3-8 are DesignAlign extensions — the relational, spatial, and governance qualities that no standard covers.
+
+## Output formats
+
+- **Vertical documents** — briefs, one-pagers, reports, memos
+- **Slide decks** — presentations, pitches, keynotes
+
+Templates define the format (canvas, navigation, section breaks). Tokens define the brand (colors, fonts, spacing). They combine at generation time.
+
+## Skills
+
+| Skill | What it does |
+|-------|-------------|
+| `/designalign:setup` | Pick a preset palette (aurora, slate) or custom colors |
+| `/designalign:tokenize` | Extract a full 8-layer token file from a URL or brand |
+| `/designalign:presentation` | Generate an on-brand slide deck |
+| `/designalign:static-site` | Generate an on-brand one-page site |
+
+## MCP tools
+
+| Tool | What it does |
+|------|-------------|
+| `get_design_contract` | Read the token file + design language |
+| `validate_artifact` | Check an HTML file against the token file |
+
+## Unit system
+
+All spatial values use `rem`, not `px`. Font sizes, spacing, radii, padding — everything relative to root font size. Documents scale across screen sizes without breakpoints.
+
+## Repo layout
+
+```
+architecture/              # Architecture docs, business model, research
+plugin/
+  schema/                  # JSON Schema for the token file
+  skills/                  # setup, tokenize, presentation, static-site
+  templates/               # vertical.json, slides.json
+  presets/                 # aurora, slate color presets
+  mcp-server/              # TypeScript MCP server (validate + tools)
+  .claude-plugin/          # Plugin metadata
+  .mcp.json                # MCP wiring
+```
 
 ## Requirements
 
-- [Claude Code](https://code.claude.com/) CLI  
-- Node.js 20+ (to run the bundled MCP server)
+- [Claude Code](https://code.claude.com/) CLI
+- Node.js 20+
 
-## Install Claude Code (once)
-
-```bash
-npm install -g @anthropic-ai/claude-code
-claude --version
-claude login    # or: claude   # follow the browser auth prompt
-```
-
-Confirm you’re signed in:
+## Quick start
 
 ```bash
-claude auth status
+cd your-project
+claude --plugin-dir ~/designalign/plugin
 ```
 
-## Run DesignAlign locally (dev — no GitHub needed)
+Inside Claude Code:
 
-From a **demo project folder**, mount this repo’s plugin:
-
-```bash
-mkdir -p /tmp/designalign-demo && cd /tmp/designalign-demo
-claude --plugin-dir /Users/tomer/Development/workspace/plugin
+```
+/designalign:tokenize https://example.com
 ```
 
-You should see `designalign` loaded. Inside Claude Code:
+Then generate:
 
-```text
-/designalign:setup
 ```
-
-Pick preset **aurora** or **slate** (or custom colors). Then:
-
-```text
 /designalign:presentation
 ```
 
-or
-
-```text
-/designalign:static-site
-```
-
-Open the result:
-
-- Presentation: `out/presentation/index.html`
-- Static site: `out/site/index.html`
-
-Check MCP tools are available with `/mcp` if needed. After editing plugin MCP code, rebuild then reload:
-
-```bash
-cd /Users/tomer/Development/workspace/plugin/mcp-server && npm run build
-# in Claude Code:
-/reload-plugins
-```
-
-## Install for everyday use (marketplace)
-
-After this repo is on GitHub:
-
-```text
-/plugin marketplace add <you>/<repo>
-/plugin install designalign@designalign
-```
-
-Exact marketplace name is `designalign` (see [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json)). Then use the same `/designalign:*` skills in any project.
-
-## Local development checks
+## Local development
 
 ```bash
 cd plugin/mcp-server
 npm install
 npm test
 npm run build
-claude plugin validate ./plugin --strict
-claude --plugin-dir ./plugin plugin list
-```
-
-### MCP inspector (optional)
-
-```bash
-npx @modelcontextprotocol/inspector node plugin/mcp-server/dist/server.js
-```
-
-## Repo layout
-
-```text
-.claude-plugin/marketplace.json   # marketplace catalog
-plugin/
-  .claude-plugin/plugin.json
-  .mcp.json                       # stdio MCP via CLAUDE_PLUGIN_ROOT
-  skills/                         # setup, presentation, static-site
-  presets/                        # aurora, slate
-  mcp-server/                     # validate + MCP (dist/server.js committed)
 ```
 
 ## Branding
 
-DesignAlign is an independent plugin **for Claude Code**. It is not Claude Code or an Anthropic product.
+DesignAlign is an independent plugin for Claude Code. It is not Claude Code or an Anthropic product.
