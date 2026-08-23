@@ -46,7 +46,10 @@ Templates define the format (canvas, navigation, section breaks). Tokens define 
 
 | Tool | What it does |
 |------|-------------|
-| `get_design_contract` | Read the token file + design language |
+| `list_design_systems` | List library systems via REST |
+| `get_design_contract` | Read tokens + design language (REST, or local fallback) |
+| `update_design_system` | Save a library system via REST |
+| `apply_system_to_project` | Export a library system into a project's `designalign/` |
 | `validate_artifact` | Check an HTML file against the token file |
 
 ## Unit system
@@ -57,15 +60,28 @@ All spatial values use `rem`, not `px`. Font sizes, spacing, radii, padding — 
 
 ```
 architecture/              # Architecture docs, business model, research
+admin/                     # Next.js local admin (UI + REST /api/v1)
+systems/                   # Local design-system library (tokens on disk)
 plugin/
   schema/                  # JSON Schema for the token file
   skills/                  # setup, tokenize, presentation, static-site
   templates/               # vertical.json, slides.json
   presets/                 # aurora, slate color presets
-  mcp-server/              # TypeScript MCP server (validate + tools)
+  mcp-server/              # TypeScript MCP server (REST client + tools)
   .claude-plugin/          # Plugin metadata
   .mcp.json                # MCP wiring
 ```
+
+## Local admin (visuals + edits)
+
+```bash
+cd admin
+npm install
+npm run dev
+```
+
+Open http://127.0.0.1:3000 — browse/edit systems under `systems/`.  
+Claude talks to the same REST API (`DESIGNALIGN_API_BASE`, default `http://127.0.0.1:3000`).
 
 ## Requirements
 

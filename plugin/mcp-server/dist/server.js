@@ -21148,18 +21148,188 @@ var StdioServerTransport = class {
   }
 };
 
+// src/api-client.ts
+function apiBase() {
+  return process.env.DESIGNALIGN_API_BASE?.replace(/\/$/, "") || "http://127.0.0.1:3000";
+}
+function apiToken() {
+  return process.env.DESIGNALIGN_API_TOKEN || void 0;
+}
+var DesignAlignApiError = class extends Error {
+  constructor(status, body) {
+    const message = body && typeof body === "object" && "error" in body && body.error && typeof body.error === "object" && "message" in body.error ? String(body.error.message) : `API request failed (${status})`;
+    super(message);
+    this.status = status;
+    this.body = body;
+    this.name = "DesignAlignApiError";
+  }
+};
+async function apiFetch(path, init) {
+  const headers = new Headers(init?.headers);
+  if (init?.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+  const token = apiToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const url = `${apiBase()}${path.startsWith("/") ? path : `/${path}`}`;
+  let res;
+  try {
+    res = await fetch(url, { ...init, headers });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(
+      `DesignAlign API unreachable at ${apiBase()} (${message}). Start the admin app (cd admin && npm run dev) or set DESIGNALIGN_API_BASE.`
+    );
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new DesignAlignApiError(res.status, data);
+  }
+  return data;
+}
+
 // src/tokens.ts
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
+var HexColor = external_exports.string().regex(/^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$/);
+var TypographyRole = external_exports.object({
+  family: external_exports.string(),
+  weight: external_exports.number().int().min(1).max(1e3)
+});
+var HeadingLevel = external_exports.object({
+  size: external_exports.number(),
+  weight: external_exports.number().int(),
+  color: external_exports.string(),
+  spacingBelow: external_exports.number()
+});
 var TokensSchema = external_exports.object({
   name: external_exports.string().min(1),
+  version: external_exports.string().optional(),
+  source: external_exports.string().optional(),
+  scraped_at: external_exports.string().optional(),
+  palette: external_exports.object({
+    colors: external_exports.record(HexColor),
+    fonts: external_exports.array(external_exports.string()).optional(),
+    fontWeights: external_exports.array(external_exports.number().int()).optional(),
+    fontSizes: external_exports.array(external_exports.number()).optional(),
+    spacing: external_exports.array(external_exports.number()).optional(),
+    radii: external_exports.array(external_exports.number()).optional(),
+    shadows: external_exports.array(external_exports.string()).optional()
+  }).optional(),
+  // Legacy flat colors field for backward compat with v0.1
   colors: external_exports.object({
-    primary: external_exports.string().regex(/^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$/),
-    secondary: external_exports.string().regex(/^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$/),
-    background: external_exports.string().regex(/^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$/),
-    text: external_exports.string().regex(/^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$/),
-    accent: external_exports.string().regex(/^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$/)
-  })
+    primary: HexColor,
+    secondary: HexColor,
+    background: HexColor,
+    text: HexColor,
+    accent: HexColor
+  }).optional(),
+  roles: external_exports.object({
+    colors: external_exports.record(external_exports.string()).optional(),
+    typography: external_exports.record(TypographyRole).optional()
+  }).optional(),
+  elements: external_exports.object({
+    headings: external_exports.record(HeadingLevel).optional(),
+    body: external_exports.object({
+      size: external_exports.number(),
+      weight: external_exports.number().int(),
+      color: external_exports.string(),
+      lineHeight: external_exports.number(),
+      paragraphSpacing: external_exports.number()
+    }).optional(),
+    eyebrow: external_exports.object({
+      size: external_exports.number(),
+      weight: external_exports.number().int(),
+      letterSpacing: external_exports.string(),
+      uppercase: external_exports.boolean(),
+      color: external_exports.string()
+    }).optional(),
+    callout: external_exports.object({
+      background: external_exports.string(),
+      borderLeft: external_exports.string(),
+      padding: external_exports.number(),
+      radius: external_exports.number()
+    }).optional(),
+    table: external_exports.object({
+      headerBackground: external_exports.string(),
+      headerWeight: external_exports.number().int(),
+      cellPadding: external_exports.number(),
+      borderStyle: external_exports.string(),
+      borderColor: external_exports.string()
+    }).optional(),
+    blockquote: external_exports.object({
+      indent: external_exports.number(),
+      borderLeft: external_exports.string(),
+      fontStyle: external_exports.string(),
+      color: external_exports.string()
+    }).optional(),
+    list: external_exports.object({
+      marker: external_exports.enum(["bullet", "dash", "number", "none"]),
+      indent: external_exports.number(),
+      itemSpacing: external_exports.number()
+    }).optional(),
+    divider: external_exports.object({
+      style: external_exports.enum(["line", "space", "none"]),
+      color: external_exports.string().optional(),
+      weight: external_exports.number().optional()
+    }).optional()
+  }).optional(),
+  hierarchy: external_exports.object({
+    typeScale: external_exports.array(external_exports.number()).optional(),
+    emphasis: external_exports.enum(["size", "weight", "color", "mixed"]).optional()
+  }).optional(),
+  structure: external_exports.object({
+    page: external_exports.object({
+      maxWidth: external_exports.string(),
+      padding: external_exports.number(),
+      alignment: external_exports.enum(["left", "center", "right"]),
+      background: external_exports.string()
+    }).optional(),
+    header: external_exports.object({
+      background: external_exports.string(),
+      paddingBottom: external_exports.number(),
+      borderBottom: external_exports.string(),
+      alignment: external_exports.enum(["left", "center", "right"])
+    }).optional(),
+    footer: external_exports.object({
+      size: external_exports.number(),
+      color: external_exports.string(),
+      borderTop: external_exports.string(),
+      paddingTop: external_exports.number()
+    }).optional()
+  }).optional(),
+  editorial: external_exports.object({
+    sizeSelections: external_exports.array(external_exports.number()).optional(),
+    weightSelections: external_exports.array(external_exports.number().int()).optional(),
+    spacingSelections: external_exports.array(external_exports.number()).optional(),
+    maxColors: external_exports.number().int().optional(),
+    accentRule: external_exports.string().optional(),
+    surfaceAlternation: external_exports.enum(["alternate", "uniform", "hero-only"]).optional(),
+    headingStyle: external_exports.object({
+      case: external_exports.enum(["sentence", "title", "uppercase"]).optional(),
+      type: external_exports.enum(["topic", "insight"]).optional()
+    }).optional(),
+    tone: external_exports.enum(["formal", "conversational", "playful", "technical"]).optional()
+  }).optional(),
+  assets: external_exports.object({
+    logo: external_exports.object({
+      file: external_exports.string().optional(),
+      fileDark: external_exports.string().optional(),
+      placement: external_exports.enum(["top-left", "top-center", "top-right"]).optional(),
+      clearSpace: external_exports.number().optional()
+    }).optional(),
+    photoTreatment: external_exports.enum(["full-color", "grayscale", "brand-overlay", "none"]).optional(),
+    iconStyle: external_exports.object({
+      style: external_exports.enum(["outline", "filled", "duotone"]).optional(),
+      strokeWidth: external_exports.number().optional()
+    }).optional()
+  }).optional(),
+  rhythm: external_exports.object({
+    density: external_exports.enum(["sparse", "balanced", "dense"]).optional(),
+    sectionGap: external_exports.number().optional(),
+    elementGap: external_exports.number().optional(),
+    whitespaceRatio: external_exports.number().min(0).max(1).optional()
+  }).optional()
 });
 var DESIGNALIGN_DIR = "designalign";
 var TOKENS_FILE = "tokens.json";
@@ -21173,7 +21343,14 @@ function normalizeHex(hex) {
   return h;
 }
 function allowedColorSet(tokens) {
-  return new Set(Object.values(tokens.colors).map(normalizeHex));
+  const colors = [];
+  if (tokens.palette?.colors) {
+    colors.push(...Object.values(tokens.palette.colors));
+  }
+  if (tokens.colors) {
+    colors.push(...Object.values(tokens.colors));
+  }
+  return new Set(colors.map(normalizeHex));
 }
 function tokensPath(projectRoot2) {
   return join(projectRoot2, DESIGNALIGN_DIR, TOKENS_FILE);
@@ -21204,6 +21381,10 @@ import { resolve, isAbsolute, dirname, join as join2 } from "node:path";
 var HEX_RE = /#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/g;
 var RGB_RE = /\brgba?\(\s*([^)]+)\)/gi;
 var HSL_RE = /\bhsla?\(\s*[^)]+\)/gi;
+var FONT_FAMILY_RE = /font-family\s*:\s*([^;}"]+)/gi;
+var FONT_SIZE_RE = /font-size\s*:\s*(\d+(?:\.\d+)?)\s*px/gi;
+var FONT_WEIGHT_RE = /font-weight\s*:\s*(\d{3})\b/gi;
+var BORDER_RADIUS_RE = /border-radius\s*:\s*(\d+(?:\.\d+)?)\s*px/gi;
 function rgbToHex(r, g, b) {
   const clamp = (n) => Math.max(0, Math.min(255, Math.round(n)));
   return normalizeHex(
@@ -21245,6 +21426,67 @@ function checkColors(content, tokens, violations) {
       rule: "colors",
       detail: `Disallowed hsl() color "${m[0]}". Use token hex values only.`
     });
+  }
+}
+function checkFonts(content, tokens, violations) {
+  const allowed = tokens.palette?.fonts;
+  if (!allowed || allowed.length === 0) return;
+  const allowedLower = new Set(allowed.map((f) => f.toLowerCase()));
+  const generics = /* @__PURE__ */ new Set(["serif", "sans-serif", "monospace", "system-ui", "cursive", "fantasy", "-apple-system"]);
+  for (const m of content.matchAll(FONT_FAMILY_RE)) {
+    const families = m[1].split(",").map((f) => f.trim().replace(/['"]/g, "").toLowerCase());
+    for (const f of families) {
+      if (!f) continue;
+      if (generics.has(f)) continue;
+      if (!allowedLower.has(f)) {
+        violations.push({
+          rule: "fonts",
+          detail: `Disallowed font-family "${f}". Allowed: ${allowed.join(", ")}`
+        });
+      }
+    }
+  }
+}
+function checkFontSizes(content, tokens, violations) {
+  const allowed = tokens.palette?.fontSizes;
+  if (!allowed || allowed.length === 0) return;
+  const allowedSet = new Set(allowed);
+  for (const m of content.matchAll(FONT_SIZE_RE)) {
+    const size = parseFloat(m[1]);
+    if (!allowedSet.has(size)) {
+      violations.push({
+        rule: "font-sizes",
+        detail: `Disallowed font-size "${size}px". Allowed: ${allowed.join(", ")}px`
+      });
+    }
+  }
+}
+function checkFontWeights(content, tokens, violations) {
+  const allowed = tokens.palette?.fontWeights;
+  if (!allowed || allowed.length === 0) return;
+  const allowedSet = new Set(allowed);
+  for (const m of content.matchAll(FONT_WEIGHT_RE)) {
+    const weight = parseInt(m[1], 10);
+    if (!allowedSet.has(weight)) {
+      violations.push({
+        rule: "font-weights",
+        detail: `Disallowed font-weight "${weight}". Allowed: ${allowed.join(", ")}`
+      });
+    }
+  }
+}
+function checkRadii(content, tokens, violations) {
+  const allowed = tokens.palette?.radii;
+  if (!allowed || allowed.length === 0) return;
+  const allowedSet = new Set(allowed);
+  for (const m of content.matchAll(BORDER_RADIUS_RE)) {
+    const radius = parseFloat(m[1]);
+    if (!allowedSet.has(radius)) {
+      violations.push({
+        rule: "border-radii",
+        detail: `Disallowed border-radius "${radius}px". Allowed: ${allowed.join(", ")}px`
+      });
+    }
   }
 }
 function checkPresentation(content, violations) {
@@ -21327,6 +21569,10 @@ function validateArtifact(options) {
       htmlContent += content;
     }
     checkColors(content, tokens, violations);
+    checkFonts(content, tokens, violations);
+    checkFontSizes(content, tokens, violations);
+    checkFontWeights(content, tokens, violations);
+    checkRadii(content, tokens, violations);
   }
   if (kind === "presentation") checkPresentation(htmlContent || readFileSync2(filePath, "utf8"), violations);
   if (kind === "static-site") checkStaticSite(htmlContent || readFileSync2(filePath, "utf8"), violations);
@@ -21349,19 +21595,137 @@ var server = new McpServer({
   version: "0.1.0"
 });
 server.tool(
-  "get_design_contract",
-  "Read the DesignAlign design contract (tokens + design language) from the current project. Call this before generating any artifact.",
+  "list_design_systems",
+  "List design systems in the DesignAlign library via REST GET /api/v1/systems.",
   {},
   async () => {
     try {
-      const contract = loadDesignContract(projectRoot());
+      const data = await apiFetch("/api/v1/systems");
       return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(contract, null, 2)
-          }
-        ]
+        content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return {
+        isError: true,
+        content: [{ type: "text", text: message }]
+      };
+    }
+  }
+);
+server.tool(
+  "get_design_contract",
+  "Read the DesignAlign design contract. Prefer REST (library slug or current project). Falls back to local designalign/ files if the API is down and no slug is given.",
+  {
+    slug: external_exports.string().optional().describe("Library system slug. Omit to use the current project contract.")
+  },
+  async ({ slug }) => {
+    try {
+      if (slug) {
+        const data = await apiFetch(`/api/v1/systems/${encodeURIComponent(slug)}`);
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                {
+                  tokens: data.tokens,
+                  designLanguageMd: data.designLanguageMd,
+                  slug: data.slug
+                },
+                null,
+                2
+              )
+            }
+          ]
+        };
+      }
+      try {
+        const root = projectRoot();
+        const data = await apiFetch(
+          `/api/v1/projects/current/contract?projectRoot=${encodeURIComponent(root)}`
+        );
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                {
+                  tokens: data.tokens,
+                  designLanguageMd: data.designLanguageMd
+                },
+                null,
+                2
+              )
+            }
+          ]
+        };
+      } catch {
+        const contract = loadDesignContract(projectRoot());
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(contract, null, 2)
+            }
+          ]
+        };
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return {
+        isError: true,
+        content: [{ type: "text", text: message }]
+      };
+    }
+  }
+);
+server.tool(
+  "update_design_system",
+  "Update a library design system via REST PUT /api/v1/systems/:slug.",
+  {
+    slug: external_exports.string().describe("Library system slug"),
+    tokens: external_exports.record(external_exports.unknown()).describe("Full tokens object"),
+    designLanguageMd: external_exports.string().optional().describe("Optional design-language.md body")
+  },
+  async ({ slug, tokens, designLanguageMd }) => {
+    try {
+      const parsed = TokensSchema.parse(tokens);
+      const data = await apiFetch(`/api/v1/systems/${encodeURIComponent(slug)}`, {
+        method: "PUT",
+        body: JSON.stringify({ tokens: parsed, designLanguageMd })
+      });
+      return {
+        content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return {
+        isError: true,
+        content: [{ type: "text", text: message }]
+      };
+    }
+  }
+);
+server.tool(
+  "apply_system_to_project",
+  "Export a library system into a project designalign/ folder via REST POST /api/v1/systems/:slug/export.",
+  {
+    slug: external_exports.string(),
+    projectRoot: external_exports.string().optional().describe("Absolute project root. Defaults to DESIGNALIGN_PROJECT_ROOT or cwd.")
+  },
+  async ({ slug, projectRoot: rootArg }) => {
+    try {
+      const projectRoot2 = rootArg || projectRoot2();
+      const data = await apiFetch(
+        `/api/v1/systems/${encodeURIComponent(slug)}/export`,
+        {
+          method: "POST",
+          body: JSON.stringify({ projectRoot: projectRoot2 })
+        }
+      );
+      return {
+        content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
       };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -21374,28 +21738,47 @@ server.tool(
 );
 server.tool(
   "validate_artifact",
-  "Validate a generated HTML/CSS artifact against the DesignAlign design contract. Returns ok + violations. Always call after writing files; fix and re-validate until ok or 3 attempts.",
+  "Validate an HTML/CSS artifact against the design contract. Uses REST POST /api/v1/validate when the admin API is up; otherwise local MCP validation.",
   {
     path: external_exports.string().describe(
       "Path to the main HTML file relative to the project root, e.g. out/presentation/index.html"
     ),
-    kind: external_exports.enum(["presentation", "static-site"]).describe("Which artifact rules to apply")
+    kind: external_exports.enum(["presentation", "static-site", "document"]).describe("Which artifact rules to apply"),
+    systemSlug: external_exports.string().optional().describe("Optional library slug to validate against instead of the project contract")
   },
-  async ({ path, kind }) => {
-    const result = validateArtifact({
-      projectRoot: projectRoot(),
-      path,
-      kind
-    });
-    return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(result, null, 2)
-        }
-      ],
-      isError: !result.ok
-    };
+  async ({ path, kind, systemSlug }) => {
+    const root = projectRoot();
+    try {
+      const data = await apiFetch("/api/v1/validate", {
+        method: "POST",
+        body: JSON.stringify({
+          path,
+          kind,
+          projectRoot: root,
+          systemSlug
+        })
+      });
+      const ok = data && typeof data === "object" && "ok" in data && Boolean(data.ok);
+      return {
+        content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+        isError: !ok
+      };
+    } catch {
+      const result = validateArtifact({
+        projectRoot: root,
+        path,
+        kind
+      });
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result, null, 2)
+          }
+        ],
+        isError: !result.ok
+      };
+    }
   }
 );
 async function main() {

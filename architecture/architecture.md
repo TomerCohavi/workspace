@@ -167,9 +167,11 @@ Two modes at each stage:
 
 See `business-model.md` for details.
 
-## Current Stack (2026-08-22)
+## Current Stack (2026-08-23)
 
 - TypeScript + Node.js
-- MCP SDK (stdio transport, local only)
+- MCP SDK (stdio transport) — tools call REST via `DESIGNALIGN_API_BASE`
+- Local Next.js admin (`admin/`) — UI + REST `/api/v1` (filesystem library under `systems/`)
 - Zod for schema validation
-- No database, no hosted API, no cloud dependency
+- No cloud/SaaS yet; same REST contract is intended for a hosted base URL later
+- Optional `DESIGNALIGN_API_TOKEN` (Bearer) reserved for SaaS auth
