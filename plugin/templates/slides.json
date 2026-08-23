@@ -1,0 +1,55 @@
+{
+  "$template": "slides",
+  "$description": "Horizontal slide deck. Fixed viewport per slide, keyboard navigation.",
+
+  "canvas": {
+    "aspectRatio": "16:9",
+    "width": "100vw",
+    "height": "100vh",
+    "overflow": "hidden"
+  },
+
+  "navigation": {
+    "keys": ["ArrowRight", "ArrowDown", "Space", "ArrowLeft", "ArrowUp"],
+    "direction": "horizontal"
+  },
+
+  "slide": {
+    "padding": "4rem",
+    "mobilePadding": "2rem",
+    "contentMaxWidth": "85%",
+    "verticalAlignment": "center"
+  },
+
+  "persistent": {
+    "logo": {
+      "position": "top-left",
+      "size": "small",
+      "opacity": 0.4,
+      "hideOnFirstAndLast": true
+    },
+    "slideNumber": {
+      "position": "bottom-right",
+      "hideOnFirstAndLast": true
+    }
+  },
+
+  "background": {
+    "titleSlide": "surfaceDark",
+    "contentSlides": "surface",
+    "closingSlide": "surfaceDark",
+    "rule": "Dark-light-dark sandwich. Title and closing slides use the brand's dark surface. Content slides use light surface for readability. Same universal rule as vertical documents."
+  },
+
+  "heading": {
+    "rule": "Heading position is identical on every content slide. Same size, same weight, same vertical position."
+  },
+
+  "fontSizes": {
+    "rule": "Maximum 3 font sizes across the entire deck. One for headings, one for body, one for labels. No exceptions."
+  },
+
+  "width": {
+    "rule": "Same padding on every slide. Content area is identical across all slides. No slide breaks the grid."
+  }
+}

@@ -5,3 +5,7 @@ plugin/mcp-server/test/.tmp-project/
 dist-dev/
 .env
 .env.*
+
+# Local experiments (Assaf's sandbox — not pushed)
+sandbox/
+out/

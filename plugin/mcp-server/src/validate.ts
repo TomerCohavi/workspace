@@ -8,7 +8,7 @@ import {
   tokensPath,
 } from "./tokens.js";
 
-export type ArtifactKind = "presentation" | "static-site";
+export type ArtifactKind = "presentation" | "static-site" | "document";
 
 export type Violation = {
   rule: string;
@@ -23,6 +23,10 @@ export type ValidateResult = {
 const HEX_RE = /#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})\b/g;
 const RGB_RE = /\brgba?\(\s*([^)]+)\)/gi;
 const HSL_RE = /\bhsla?\(\s*[^)]+\)/gi;
+const FONT_FAMILY_RE = /font-family\s*:\s*([^;}"]+)/gi;
+const FONT_SIZE_RE = /font-size\s*:\s*(\d+(?:\.\d+)?)\s*px/gi;
+const FONT_WEIGHT_RE = /font-weight\s*:\s*(\d{3})\b/gi;
+const BORDER_RADIUS_RE = /border-radius\s*:\s*(\d+(?:\.\d+)?)\s*px/gi;
 
 function rgbToHex(r: number, g: number, b: number): string {
   const clamp = (n: number) => Math.max(0, Math.min(255, Math.round(n)));
@@ -79,6 +83,96 @@ function checkColors(
   }
 }
 
+function checkFonts(
+  content: string,
+  tokens: DesignTokens,
+  violations: Violation[],
+): void {
+  const allowed = tokens.palette?.fonts;
+  if (!allowed || allowed.length === 0) return;
+
+  const allowedLower = new Set(allowed.map((f) => f.toLowerCase()));
+  // Also allow generic families
+  const generics = new Set(["serif", "sans-serif", "monospace", "system-ui", "cursive", "fantasy", "-apple-system"]);
+
+  for (const m of content.matchAll(FONT_FAMILY_RE)) {
+    const families = m[1].split(",").map((f) => f.trim().replace(/['"]/g, "").toLowerCase());
+    for (const f of families) {
+      if (!f) continue;
+      if (generics.has(f)) continue;
+      if (!allowedLower.has(f)) {
+        violations.push({
+          rule: "fonts",
+          detail: `Disallowed font-family "${f}". Allowed: ${allowed.join(", ")}`,
+        });
+      }
+    }
+  }
+}
+
+function checkFontSizes(
+  content: string,
+  tokens: DesignTokens,
+  violations: Violation[],
+): void {
+  const allowed = tokens.palette?.fontSizes;
+  if (!allowed || allowed.length === 0) return;
+
+  const allowedSet = new Set(allowed);
+
+  for (const m of content.matchAll(FONT_SIZE_RE)) {
+    const size = parseFloat(m[1]);
+    if (!allowedSet.has(size)) {
+      violations.push({
+        rule: "font-sizes",
+        detail: `Disallowed font-size "${size}px". Allowed: ${allowed.join(", ")}px`,
+      });
+    }
+  }
+}
+
+function checkFontWeights(
+  content: string,
+  tokens: DesignTokens,
+  violations: Violation[],
+): void {
+  const allowed = tokens.palette?.fontWeights;
+  if (!allowed || allowed.length === 0) return;
+
+  const allowedSet = new Set(allowed);
+
+  for (const m of content.matchAll(FONT_WEIGHT_RE)) {
+    const weight = parseInt(m[1], 10);
+    if (!allowedSet.has(weight)) {
+      violations.push({
+        rule: "font-weights",
+        detail: `Disallowed font-weight "${weight}". Allowed: ${allowed.join(", ")}`,
+      });
+    }
+  }
+}
+
+function checkRadii(
+  content: string,
+  tokens: DesignTokens,
+  violations: Violation[],
+): void {
+  const allowed = tokens.palette?.radii;
+  if (!allowed || allowed.length === 0) return;
+
+  const allowedSet = new Set(allowed);
+
+  for (const m of content.matchAll(BORDER_RADIUS_RE)) {
+    const radius = parseFloat(m[1]);
+    if (!allowedSet.has(radius)) {
+      violations.push({
+        rule: "border-radii",
+        detail: `Disallowed border-radius "${radius}px". Allowed: ${allowed.join(", ")}px`,
+      });
+    }
+  }
+}
+
 function checkPresentation(content: string, violations: Violation[]): void {
   const slides = content.match(/data-slide\b/gi) ?? [];
   if (slides.length < 2) {
@@ -113,6 +207,10 @@ export function validateContent(
 ): ValidateResult {
   const violations: Violation[] = [];
   checkColors(content, tokens, violations);
+  checkFonts(content, tokens, violations);
+  checkFontSizes(content, tokens, violations);
+  checkFontWeights(content, tokens, violations);
+  checkRadii(content, tokens, violations);
   if (kind === "presentation") checkPresentation(content, violations);
   if (kind === "static-site") checkStaticSite(content, violations);
   return { ok: violations.length === 0, violations };
@@ -188,6 +286,10 @@ export function validateArtifact(options: {
       htmlContent += content;
     }
     checkColors(content, tokens, violations);
+    checkFonts(content, tokens, violations);
+    checkFontSizes(content, tokens, violations);
+    checkFontWeights(content, tokens, violations);
+    checkRadii(content, tokens, violations);
   }
 
   if (kind === "presentation") checkPresentation(htmlContent || readFileSync(filePath, "utf8"), violations);

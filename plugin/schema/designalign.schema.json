@@ -1,0 +1,256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://designalign.dev/schema/v0.3",
+  "title": "DesignAlign Token File",
+  "description": "6-layer design system token file for vertical documents",
+  "type": "object",
+  "required": ["name", "version", "palette"],
+  "properties": {
+    "name": { "type": "string" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "source": { "type": "string" },
+    "scraped_at": { "type": "string", "format": "date" },
+
+    "palette": {
+      "type": "object",
+      "description": "Layer 1: All allowed raw values",
+      "required": ["colors"],
+      "properties": {
+        "colors": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$" }
+        },
+        "fonts": { "type": "array", "items": { "type": "string" } },
+        "fontWeights": { "type": "array", "items": { "type": "integer", "minimum": 1, "maximum": 1000 } },
+        "fontSizes": { "type": "array", "items": { "type": "number" } },
+        "spacing": { "type": "array", "items": { "type": "number" } },
+        "radii": { "type": "array", "items": { "type": "number" } },
+        "shadows": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "roles": {
+      "type": "object",
+      "description": "Layer 2: Semantic mapping",
+      "properties": {
+        "colors": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "typography": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "family": { "type": "string" },
+              "weight": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+
+    "elements": {
+      "type": "object",
+      "description": "Layer 3: Document element treatments",
+      "properties": {
+        "headings": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "size": { "type": "number" },
+              "weight": { "type": "integer" },
+              "color": { "type": "string" },
+              "spacingBelow": { "type": "number" }
+            }
+          }
+        },
+        "body": {
+          "type": "object",
+          "properties": {
+            "size": { "type": "number" },
+            "weight": { "type": "integer" },
+            "color": { "type": "string" },
+            "lineHeight": { "type": "number" },
+            "paragraphSpacing": { "type": "number" }
+          }
+        },
+        "eyebrow": {
+          "type": "object",
+          "properties": {
+            "size": { "type": "number" },
+            "weight": { "type": "integer" },
+            "letterSpacing": { "type": "string" },
+            "uppercase": { "type": "boolean" },
+            "color": { "type": "string" }
+          }
+        },
+        "callout": {
+          "type": "object",
+          "properties": {
+            "background": { "type": "string" },
+            "borderLeft": { "type": "string" },
+            "padding": { "type": "number" },
+            "radius": { "type": "number" }
+          }
+        },
+        "table": {
+          "type": "object",
+          "properties": {
+            "headerBackground": { "type": "string" },
+            "headerWeight": { "type": "integer" },
+            "cellPadding": { "type": "number" },
+            "borderStyle": { "type": "string" },
+            "borderColor": { "type": "string" }
+          }
+        },
+        "blockquote": {
+          "type": "object",
+          "properties": {
+            "indent": { "type": "number" },
+            "borderLeft": { "type": "string" },
+            "fontStyle": { "type": "string" },
+            "color": { "type": "string" }
+          }
+        },
+        "list": {
+          "type": "object",
+          "properties": {
+            "marker": { "type": "string", "enum": ["bullet", "dash", "number", "none"] },
+            "indent": { "type": "number" },
+            "itemSpacing": { "type": "number" }
+          }
+        },
+        "divider": {
+          "type": "object",
+          "properties": {
+            "style": { "type": "string", "enum": ["line", "space", "none"] },
+            "color": { "type": "string" },
+            "weight": { "type": "number" }
+          }
+        }
+      }
+    },
+
+    "hierarchy": {
+      "type": "object",
+      "description": "Layer 4: Visual weight and size ratios",
+      "properties": {
+        "typeScale": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "Multipliers relative to body size, ascending"
+        },
+        "emphasis": {
+          "type": "string",
+          "enum": ["size", "weight", "color", "mixed"]
+        }
+      }
+    },
+
+    "structure": {
+      "type": "object",
+      "description": "Layer 5: Page template for vertical documents",
+      "properties": {
+        "page": {
+          "type": "object",
+          "properties": {
+            "maxWidth": { "type": "string" },
+            "padding": { "type": "number" },
+            "alignment": { "type": "string", "enum": ["left", "center", "right"] },
+            "background": { "type": "string" }
+          }
+        },
+        "header": {
+          "type": "object",
+          "properties": {
+            "background": { "type": "string" },
+            "paddingBottom": { "type": "number" },
+            "borderBottom": { "type": "string" },
+            "alignment": { "type": "string", "enum": ["left", "center", "right"] }
+          }
+        },
+        "footer": {
+          "type": "object",
+          "properties": {
+            "size": { "type": "number" },
+            "color": { "type": "string" },
+            "borderTop": { "type": "string" },
+            "paddingTop": { "type": "number" }
+          }
+        }
+      }
+    },
+
+    "editorial": {
+      "type": "object",
+      "description": "Layer 7: Design constraints for harmony",
+      "properties": {
+        "sizeSelections": { "type": "array", "items": { "type": "number" }, "description": "Which 3-4 font sizes from palette to use in one document (rem)" },
+        "weightSelections": { "type": "array", "items": { "type": "integer" }, "description": "Which 2 font weights to use" },
+        "spacingSelections": { "type": "array", "items": { "type": "number" }, "description": "Which 2-3 spacing values to use (rem)" },
+        "maxColors": { "type": "integer", "description": "Max distinct colors per document" },
+        "accentRule": { "type": "string", "description": "How accent color is used" },
+        "surfaceAlternation": { "type": "string", "enum": ["alternate", "uniform", "hero-only"] },
+        "headingStyle": {
+          "type": "object",
+          "properties": {
+            "case": { "type": "string", "enum": ["sentence", "title", "uppercase"] },
+            "type": { "type": "string", "enum": ["topic", "insight"] }
+          }
+        },
+        "tone": { "type": "string", "enum": ["formal", "conversational", "playful", "technical"] }
+      }
+    },
+
+    "assets": {
+      "type": "object",
+      "description": "Layer 8: Brand asset references and treatment rules",
+      "properties": {
+        "logo": {
+          "type": "object",
+          "properties": {
+            "file": { "type": "string", "description": "Path to logo file relative to token directory" },
+            "fileDark": { "type": "string", "description": "Path to logo variant for dark backgrounds" },
+            "placement": { "type": "string", "enum": ["top-left", "top-center", "top-right"] },
+            "clearSpace": { "type": "number", "description": "Minimum padding as multiplier of logo height" }
+          }
+        },
+        "photoTreatment": { "type": "string", "enum": ["full-color", "grayscale", "brand-overlay", "none"] },
+        "iconStyle": {
+          "type": "object",
+          "properties": {
+            "style": { "type": "string", "enum": ["outline", "filled", "duotone"] },
+            "strokeWidth": { "type": "number", "description": "In rem" }
+          }
+        }
+      }
+    },
+
+    "rhythm": {
+      "type": "object",
+      "description": "Layer 6: Pacing and density",
+      "properties": {
+        "density": {
+          "type": "string",
+          "enum": ["sparse", "balanced", "dense"]
+        },
+        "sectionGap": {
+          "type": "number",
+          "description": "Space between major sections in rem"
+        },
+        "elementGap": {
+          "type": "number",
+          "description": "Space between elements within a section in rem"
+        },
+        "whitespaceRatio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Proportion of empty space (0-1)"
+        }
+      }
+    }
+  }
+}

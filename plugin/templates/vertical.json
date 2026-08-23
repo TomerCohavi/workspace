@@ -1,0 +1,66 @@
+{
+  "$template": "vertical",
+  "$description": "Single-page vertical document. One continuous surface, consistent width.",
+
+  "canvas": {
+    "width": "100%",
+    "maxWidth": "53.75rem",
+    "centering": "auto-margin",
+    "padding": {
+      "sides": "3rem",
+      "top": "2.5rem",
+      "bottom": "3rem",
+      "mobile": "1.5rem"
+    }
+  },
+
+  "card": {
+    "corners": "radii.medium",
+    "border": "1px solid border",
+    "topAccent": "3px solid roles.action",
+    "overflow": "hidden"
+  },
+
+  "surround": {
+    "background": "palette.lightestNeutral",
+    "padding": "2rem",
+    "rule": "The document floats as a card on a lighter neutral surround. Surround color must come from the token palette."
+  },
+
+  "background": {
+    "header": "roles.surfaceDark",
+    "content": "roles.surface",
+    "closing": "roles.surfaceDark",
+    "rule": "Dark-light-dark sandwich. Header opens with the brand's dark surface for impact. Content sections use light surface for readability. Closing returns to dark to bookend."
+  },
+
+  "header": {
+    "position": "top",
+    "elements": ["logo", "meta", "eyebrow", "title", "subtitle"],
+    "separatorBelow": "whitespace"
+  },
+
+  "footer": {
+    "position": "bottom",
+    "elements": ["attribution", "logo"],
+    "separatorAbove": "thin-line",
+    "insideClosing": true
+  },
+
+  "sections": {
+    "internalGap": "rhythm.elementGap",
+    "break": {
+      "method": "surround-gap",
+      "gap": "0.5rem",
+      "rule": "Sections are separate cards. A sliver of the surround background shows between them — no lines, no borders. The surround peeks through as the separator. Each section has its own background and padding."
+    }
+  },
+
+  "width": {
+    "rule": "Every element shares the same content width and side padding. No exceptions. Header content, body content, footer content — all aligned."
+  },
+
+  "responsive": {
+    "rule": "Same layout on mobile. Only padding reduces. No reflow."
+  }
+}
